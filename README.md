@@ -1,5 +1,7 @@
 # Claude Code Translation Plugin
 
+[简体中文](./README_zh.md) | English
+
 **This can save 30%~50% on Claude Code tokens consumption.**
 
 A hook-based translation plugin for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) that automatically translates non-English input to English using the Qianwen (通义千问) API.
@@ -11,6 +13,10 @@ A hook-based translation plugin for [Claude Code](https://docs.anthropic.com/en/
 - **Preserves Claude Code Features**: Full VS Code integration, session management, and file access
 - **Smart Detection**: Ignores code blocks, URLs, and file paths to avoid false positives
 - **Configurable**: Enable/disable output translation via config file
+
+## Preview
+
+![Claude Code Translator Screenshot](./screenshot.png)
 
 ## How It Works
 
