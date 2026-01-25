@@ -9,6 +9,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from lib.qianwen_client import QianwenClient
+from lib.dialogs import show_edit_dialog
 
 
 def load_config():
@@ -52,6 +53,20 @@ def main():
 
         # Translate to English
         translated = client.translate(prompt, 'English')
+
+        # Check if interactive mode is enabled
+        interactive_input = config.get('interactive_input', True)
+
+        if interactive_input:
+            # Show edit dialog for user to review/edit translation
+            confirmed, edited_translation = show_edit_dialog(prompt, translated)
+
+            if not confirmed:
+                # User cancelled, continue with original prompt without translation context
+                print(json.dumps({"result": "continue"}))
+                return
+
+            translated = edited_translation
 
         # Build context showing translation
         # Note: UserPromptSubmit hooks cannot modify the prompt, only add context

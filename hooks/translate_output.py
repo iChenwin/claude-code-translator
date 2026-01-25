@@ -9,6 +9,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from lib.qianwen_client import QianwenClient
+from lib.dialogs import show_confirm_dialog
 
 
 def load_config():
@@ -65,6 +66,16 @@ def main():
         if chinese_char_count > len(message) * 0.3:
             print(json.dumps({"result": "continue"}))
             return
+
+        # Check if interactive mode is enabled
+        interactive_output = config.get('interactive_output', True)
+
+        if interactive_output:
+            # Ask user if they want to translate
+            if not show_confirm_dialog(message):
+                # User declined translation
+                print(json.dumps({"result": "continue"}))
+                return
 
         # Translate to Chinese
         translated = client.translate(message, 'Chinese')

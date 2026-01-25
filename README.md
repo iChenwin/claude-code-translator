@@ -1,6 +1,6 @@
 # Claude Code Translation Plugin
 
-**This can save up to 30% on Claude Code tokens consumption.**
+**This can save 30%~50% on Claude Code tokens consumption.**
 
 A hook-based translation plugin for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) that automatically translates non-English input to English using the Qianwen (通义千问) API.
 
@@ -77,7 +77,8 @@ Edit `config.json` to customize behavior:
     "api_key": "your-api-key"
   },
   "translate_output": true,
-  "show_original": true
+  "interactive_input": true,
+  "interactive_output": true
 }
 ```
 
@@ -87,7 +88,8 @@ Edit `config.json` to customize behavior:
 | `qianwen.model` | Model to use for translation | `qwen-plus` |
 | `qianwen.api_key` | Your Qianwen API key | Required |
 | `translate_output` | Translate Claude's output to user's language | `true` |
-| `show_original` | Show original text alongside translation | `true` |
+| `interactive_input` | Show a dialog allows you modify the English promt | `true` |
+| `interactive_output` | Show a dialog lets you decide whether to translate the English result. (Not working.) | `true` |
 
 ## Supported Languages
 
@@ -114,6 +116,7 @@ claude-translator/
 │   └── translate_output.py     # Notification hook (optional)
 ├── lib/
 │   ├── __init__.py
+│   ├── dialogs.py              # Interactive dialogs (tkinter)
 │   └── qianwen_client.py       # Qianwen API client
 ├── config.json                 # Plugin configuration
 ├── install.py                  # Installation script
