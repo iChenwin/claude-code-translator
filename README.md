@@ -1,5 +1,7 @@
 # Claude Code Translation Plugin
 
+**This can save up to 30% on Claude Code tokens consumption.**
+
 A hook-based translation plugin for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) that automatically translates non-English input to English using the Qianwen (通义千问) API.
 
 ## Features
@@ -36,8 +38,8 @@ User Input (中文/日本語/한국어/etc.)
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/claude-translator.git
-   cd claude-translator
+   git clone https://github.com/iChenwin/claude-code-translator.git
+   cd claude-code-translator
    ```
 
 2. **Install dependencies**
