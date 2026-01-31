@@ -1,202 +1,70 @@
-# Claude Code Translation Plugin
+# Claude Code 翻译插件
 
-[简体中文](./README_zh.md) | English
+[English](./README_en.md) | [加入讨论](https://github.com/iChenwin/claude-code-translator/issues)
 
-**This can save 30%~50% on Claude Code tokens consumption.**
+**通过将提示词自动翻译为英文，节省 30%~50% 的 Token 消耗。**
 
-A hook-based translation plugin for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) that automatically translates non-English input to English using the Qianwen (通义千问) API or Baidu AI Translation API.
+这是一个非侵入式的 [Claude Code](https://docs.anthropic.com/en/docs/claude-code) 插件。它会在后台通过通义千问或百度 API 将你的中文/日文等输入自动翻译成英文。这不仅能大幅节省 Token，还能让 Claude 发挥更强的逻辑推理能力。
 
-## Features
+## 主要特性
 
-- **Automatic Translation**: Detects and translates non-English input to English
-- **Multi-language Support**: Supports Chinese, Japanese, Korean, Russian, Arabic, Thai, Vietnamese, Greek, Hebrew, Hindi, and more
-- **Preserves Claude Code Features**: Full VS Code integration, session management, and file access
-- **Smart Detection**: Ignores code blocks, URLs, and file paths to avoid false positives
-- **Configurable**: Enable/disable output translation via config file
-
-## Preview
+- **无感介入**：自动检测非英文输入并翻译，保留代码块、URL 和文件路径原样。
+- **高兼容性**：完美支持 VS Code 集成模式、REPL 和甚至文件读写操作。
+- **双引擎支持**：内置 **通义千问 (Qianwen)** 和 **百度翻译** 支持。
+- **交互可控**：支持在发送前预览并修改翻译后的英文 Prompt。
 
 ![Claude Code Translator Screenshot](./screenshot.png)
 
-## How It Works
-
-```
-User Input (中文/日本語/한국어/etc.)
-        ↓
-   [Hook Triggered]
-        ↓
-   Translation API (Qianwen or Baidu)
-        ↓
-   Claude receives: Original + English Translation
-        ↓
-   Claude responds in English
-```
-
-## Installation
+## 快速开始
 
 ### Prerequisites
-
 - Python 3.8+
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed
 - Qianwen API key (get one at [阿里云百炼](https://bailian.console.aliyun.com/)) OR
 - Baidu AI Translation API key (get one at [百度翻译开放平台](https://fanyi-api.baidu.com/))
 
-### Steps
-
-1. **Clone the repository**
+1. **下载与安装依赖**
    ```bash
    git clone https://github.com/iChenwin/claude-code-translator.git
    cd claude-code-translator
-   ```
-
-2. **Install dependencies**
-   ```bash
    pip install -r requirements.txt
    ```
 
-3. **Configure API key**
-
-   Edit `config.json` and set your API key. You can use either Qianwen or Baidu:
-
-   **Option A: Using Qianwen (default)**
+2. **配置 API Key**
+   将 `config.example.json` 重命名为 `config.json` 并填入密钥。
+   
+   *使用通义千问 (推荐):*
    ```json
    {
      "provider": "qianwen",
-     "qianwen": {
-       "api_key": "your-qianwen-api-key"
-     }
+     "qianwen": { "api_key": "你的阿里云DashScope-Key" }
    }
    ```
-
-   **Option B: Using Baidu**
+   *使用百度翻译:*
    ```json
    {
      "provider": "baidu",
-     "baidu": {
-       "api_key": "your-baidu-api-key",
-       "app_id": "your-baidu-app-id"
-     }
+     "baidu": { "api_key": "你的百度翻译api_key", "app_id": "你的百度翻译app_id" }
    }
    ```
 
-4. **Install hooks**
+3. **安装 Hook**
    ```bash
    python install.py
    ```
 
-5. **Restart Claude Code**
+重启 Claude Code 即可生效。
 
-## Configuration
+## 配置选项 (`config.json`)
 
-Edit `config.json` to customize behavior:
+| 选项Key | 说明 | 默认值 |
+| :--- | :--- | :--- |
+| `provider` | 翻译服务商 (`qianwen` 或 `baidu`) | `qianwen` |
+| `translate_output` | 是否将 Claude 的英文回复翻译回中文显示 | `true` |
+| `interactive_input` | 发送前是否弹窗确认/修改英文 Prompt | `true` |
 
-```json
-{
-  "provider": "qianwen",
-  "qianwen": {
-    "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
-    "model": "qwen-plus",
-    "api_key": "your-api-key"
-  },
-  "baidu": {
-    "api_key": "your-baidu-api-key",
-    "app_id": "your-baidu-app-id"
-  },
-  "translate_output": true,
-  "interactive_input": true,
-  "interactive_output": true
-}
-```
-
-| Option | Description | Default |
-|--------|-------------|---------|
-| `provider` | Translation provider to use (`qianwen` or `baidu`) | `qianwen` |
-| `qianwen.base_url` | Qianwen API endpoint | DashScope URL |
-| `qianwen.model` | Model to use for translation | `qwen-plus` |
-| `qianwen.api_key` | Your Qianwen API key | Required if using Qianwen |
-| `baidu.api_key` | Your Baidu AI Translation API key | Required if using Baidu |
-| `translate_output` | Translate Claude's output to user's language | `true` |
-| `interactive_input` | Show a dialog allows you modify the English promt | `true` |
-| `interactive_output` | Show a dialog lets you decide whether to translate the English result. (Not working.) | `true` |
-
-## Supported Languages
-
-The plugin automatically detects and translates:
-
-- 🇨🇳 Chinese (Simplified & Traditional)
-- 🇯🇵 Japanese
-- 🇰🇷 Korean
-- 🇷🇺 Russian
-- 🇸🇦 Arabic
-- 🇹🇭 Thai
-- 🇻🇳 Vietnamese
-- 🇬🇷 Greek
-- 🇮🇱 Hebrew
-- 🇮🇳 Hindi, Bengali, Telugu, Tamil
-- And more non-Latin scripts...
-
-## Project Structure
-
-```
-claude-translator/
-├── hooks/
-│   ├── translate_input.py      # UserPromptSubmit hook
-│   └── translate_output.py     # Notification hook (optional)
-├── lib/
-│   ├── __init__.py
-│   ├── dialogs.py              # Interactive dialogs (tkinter)
-│   ├── qianwen_client.py       # Qianwen API client
-│   └── baidu_client.py         # Baidu AI Translation API client
-├── config.json                 # Plugin configuration
-├── install.py                  # Installation script
-├── requirements.txt            # Python dependencies
-└── README.md
-```
-
-## Uninstallation
+## 卸载
 
 ```bash
 python install.py --uninstall
 ```
-
-This removes the hook configuration from `~/.claude/settings.json`.
-
-## Troubleshooting
-
-### Translation not working?
-
-1. **Check API key**: Ensure your Qianwen API key is valid
-2. **Restart Claude Code**: Hooks are loaded on startup
-3. **Test manually**:
-   ```bash
-   echo '{"prompt": "你好"}' | python hooks/translate_input.py
-   ```
-
-### No API usage in Qianwen console?
-
-- Check the correct project/workspace in the console
-- There may be a delay in usage reporting
-- Verify the API key matches the project
-
-## How Hooks Work
-
-This plugin uses Claude Code's [hook system](https://docs.anthropic.com/en/docs/claude-code):
-
-- **UserPromptSubmit**: Intercepts user input before processing
-- Hook detects non-English text and translates via Qianwen API
-- Translation is added as context for Claude to understand
-- Original prompt is preserved; translation provides context
-
-## License
-
-MIT License
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## Acknowledgments
-
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) by Anthropic
-- [Qianwen/通义千问](https://tongyi.aliyun.com/) by Alibaba Cloud
-- [Baidu AI Translation/百度翻译](https://fanyi-api.baidu.com/) by Baidu
