@@ -9,7 +9,35 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from lib.qianwen_client import QianwenClient
+from lib.baidu_client import BaiduClient
 from lib.dialogs import show_edit_dialog
+
+
+def get_translation_client(config):
+    """Get the appropriate translation client based on config.
+
+    Args:
+        config: Configuration dictionary
+
+    Returns:
+        Translation client instance
+    """
+    provider = config.get('provider', 'qianwen')
+
+    if provider == 'baidu':
+        baidu_config = config['baidu']
+        return BaiduClient(
+            api_key=baidu_config['api_key'],
+            app_id=baidu_config['app_id']
+        )
+    else:
+        # Default to qianwen
+        qianwen_config = config['qianwen']
+        return QianwenClient(
+            base_url=qianwen_config['base_url'],
+            api_key=qianwen_config['api_key'],
+            model=qianwen_config['model']
+        )
 
 
 def load_config():
@@ -36,14 +64,9 @@ def main():
 
         # Load config
         config = load_config()
-        qianwen_config = config['qianwen']
 
-        # Initialize client
-        client = QianwenClient(
-            base_url=qianwen_config['base_url'],
-            api_key=qianwen_config['api_key'],
-            model=qianwen_config['model']
-        )
+        # Initialize client based on provider
+        client = get_translation_client(config)
 
         # Check if prompt contains non-English text
         if not client.detect_non_english(prompt):

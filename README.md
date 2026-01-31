@@ -4,7 +4,7 @@
 
 **This can save 30%~50% on Claude Code tokens consumption.**
 
-A hook-based translation plugin for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) that automatically translates non-English input to English using the Qianwen (通义千问) API.
+A hook-based translation plugin for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) that automatically translates non-English input to English using the Qianwen (通义千问) API or Baidu AI Translation API.
 
 ## Features
 
@@ -25,7 +25,7 @@ User Input (中文/日本語/한국어/etc.)
         ↓
    [Hook Triggered]
         ↓
-   Qianwen API Translation
+   Translation API (Qianwen or Baidu)
         ↓
    Claude receives: Original + English Translation
         ↓
@@ -38,7 +38,8 @@ User Input (中文/日本語/한국어/etc.)
 
 - Python 3.8+
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed
-- Qianwen API key (get one at [阿里云百炼](https://bailian.console.aliyun.com/))
+- Qianwen API key (get one at [阿里云百炼](https://bailian.console.aliyun.com/)) OR
+- Baidu AI Translation API key (get one at [百度翻译开放平台](https://fanyi-api.baidu.com/))
 
 ### Steps
 
@@ -55,11 +56,25 @@ User Input (中文/日本語/한국어/etc.)
 
 3. **Configure API key**
 
-   Edit `config.json` and set your Qianwen API key:
+   Edit `config.json` and set your API key. You can use either Qianwen or Baidu:
+
+   **Option A: Using Qianwen (default)**
    ```json
    {
+     "provider": "qianwen",
      "qianwen": {
-       "api_key": "your-api-key-here"
+       "api_key": "your-qianwen-api-key"
+     }
+   }
+   ```
+
+   **Option B: Using Baidu**
+   ```json
+   {
+     "provider": "baidu",
+     "baidu": {
+       "api_key": "your-baidu-api-key",
+       "app_id": "your-baidu-app-id"
      }
    }
    ```
@@ -77,10 +92,15 @@ Edit `config.json` to customize behavior:
 
 ```json
 {
+  "provider": "qianwen",
   "qianwen": {
     "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
     "model": "qwen-plus",
     "api_key": "your-api-key"
+  },
+  "baidu": {
+    "api_key": "your-baidu-api-key",
+    "app_id": "your-baidu-app-id"
   },
   "translate_output": true,
   "interactive_input": true,
@@ -90,9 +110,11 @@ Edit `config.json` to customize behavior:
 
 | Option | Description | Default |
 |--------|-------------|---------|
+| `provider` | Translation provider to use (`qianwen` or `baidu`) | `qianwen` |
 | `qianwen.base_url` | Qianwen API endpoint | DashScope URL |
 | `qianwen.model` | Model to use for translation | `qwen-plus` |
-| `qianwen.api_key` | Your Qianwen API key | Required |
+| `qianwen.api_key` | Your Qianwen API key | Required if using Qianwen |
+| `baidu.api_key` | Your Baidu AI Translation API key | Required if using Baidu |
 | `translate_output` | Translate Claude's output to user's language | `true` |
 | `interactive_input` | Show a dialog allows you modify the English promt | `true` |
 | `interactive_output` | Show a dialog lets you decide whether to translate the English result. (Not working.) | `true` |
@@ -123,7 +145,8 @@ claude-translator/
 ├── lib/
 │   ├── __init__.py
 │   ├── dialogs.py              # Interactive dialogs (tkinter)
-│   └── qianwen_client.py       # Qianwen API client
+│   ├── qianwen_client.py       # Qianwen API client
+│   └── baidu_client.py         # Baidu AI Translation API client
 ├── config.json                 # Plugin configuration
 ├── install.py                  # Installation script
 ├── requirements.txt            # Python dependencies
@@ -176,3 +199,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) by Anthropic
 - [Qianwen/通义千问](https://tongyi.aliyun.com/) by Alibaba Cloud
+- [Baidu AI Translation/百度翻译](https://fanyi-api.baidu.com/) by Baidu
