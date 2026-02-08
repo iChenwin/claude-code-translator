@@ -4,6 +4,7 @@
 import sys
 import json
 import os
+import io
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -54,7 +55,17 @@ def main():
     """Main hook handler."""
     try:
         # Read input from stdin
-        input_data = json.loads(sys.stdin.read())
+        # Ensure we are reading UTF-8
+        try:
+            if hasattr(sys.stdin, 'buffer'):
+                sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
+        except Exception:
+            pass
+
+        raw_input = sys.stdin.read().strip()
+        if raw_input.startswith('\ufeff'):
+            raw_input = raw_input[1:]
+        input_data = json.loads(raw_input)
 
         # Debug logging
         with open('d:/code/src/claude-translator/debug_output_hook.log', 'a', encoding='utf-8') as f:
@@ -135,11 +146,20 @@ def main():
                 print(json.dumps({"result": "continue"}))
                 return
 
+        # Debug logging before translation
+        with open('d:/code/src/claude-translator/debug_output_hook.log', 'a', encoding='utf-8') as f:
+            f.write(f"Translating message (len={len(last_assistant_message)}):\n{last_assistant_message}\n\n")
+
         # Translate to Chinese
-        translated = client.translate(last_assistant_message, 'Chinese')
+        translated, usage = client.translate(last_assistant_message, 'Chinese')
+
+        # Debug logging after translation
+        with open('d:/code/src/claude-translator/debug_output_hook.log', 'a', encoding='utf-8') as f:
+            f.write(f"Translation result (len={len(translated)}):\n{translated}\n")
+            f.write(f"Usage: {usage}\n\n")
 
         # Show result in a standalone window
-        show_translation_result(last_assistant_message, translated)
+        show_translation_result(last_assistant_message, translated, usage)
         
         # Continue without adding context to Claude (since we showed it to user)
         print(json.dumps({"result": "continue"}))

@@ -119,7 +119,8 @@ Rules:
             response.raise_for_status()
 
             result = response.json()
-            return result["choices"][0]["message"]["content"].strip()
+            usage = result.get("usage", {})
+            return result["choices"][0]["message"]["content"].strip(), usage
         except requests.exceptions.RequestException as e:
             raise Exception(f"Translation API error: {e}")
         except (KeyError, IndexError) as e:

@@ -271,9 +271,10 @@ def show_confirm_dialog(message_preview: str) -> bool:
 class TranslationResultDialog:
     """Dialog for displaying translation results."""
 
-    def __init__(self, original: str, translated: str):
+    def __init__(self, original: str, translated: str, usage: dict = None):
         self.original = original
         self.translated = translated
+        self.usage = usage
 
     def show(self):
         """Show the result dialog."""
@@ -338,6 +339,17 @@ class TranslationResultDialog:
         btn_frame = tk.Frame(root, bg='#f0f0f0')
         btn_frame.pack(fill='x', padx=10, pady=(0, 10))
 
+        # Add usage info if available
+        if self.usage:
+            usage_text = f"Tokens: {self.usage.get('total_tokens', 0)} (Prompt: {self.usage.get('prompt_tokens', 0)}, Completion: {self.usage.get('completion_tokens', 0)})"
+            tk.Label(
+                btn_frame,
+                text=usage_text,
+                font=('Consolas', 9),
+                bg='#f0f0f0',
+                fg='#666666'
+            ).pack(side='left', padx=5)
+
         def on_copy():
             root.clipboard_clear()
             root.clipboard_append(self.translated)
@@ -384,11 +396,11 @@ class TranslationResultDialog:
         root.mainloop()
 
 
-def show_translation_result(original: str, translated: str):
+def show_translation_result(original: str, translated: str, usage: dict = None):
     """
     Show translation result dialog.
     """
-    dialog = TranslationResultDialog(original, translated)
+    dialog = TranslationResultDialog(original, translated, usage)
     dialog.show()
 
 
