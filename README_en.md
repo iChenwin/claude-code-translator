@@ -60,7 +60,7 @@ Restart Claude Code, and you're good to go!
 | Option | Description | Default |
 | :--- | :--- | :--- |
 | `provider` | `qianwen` or `baidu` | `qianwen` |
-| `translate_output` | Translate Claude's value-added english response back to your language? | `true` |
+| `translate_output` | Show a popup with Chinese translation of Claude's response (with Copy button)? | `true` |
 | `interactive_input` | Show a popup to review/edit the English translation before sending? | `true` |
 
 ## Uninstallation

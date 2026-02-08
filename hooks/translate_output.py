@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from lib.qianwen_client import QianwenClient
 from lib.baidu_client import BaiduClient
-from lib.dialogs import show_confirm_dialog
+from lib.dialogs import show_confirm_dialog, show_translation_result
 
 
 def get_translation_client(config):
@@ -56,18 +56,52 @@ def main():
         # Read input from stdin
         input_data = json.loads(sys.stdin.read())
 
+        # Debug logging
+        with open('d:/code/src/claude-translator/debug_output_hook.log', 'a', encoding='utf-8') as f:
+            f.write(json.dumps(input_data, ensure_ascii=False, indent=2) + "\n\n")
+
         # Check if this is an assistant message notification
-        hook_event = input_data.get('hook_event_name', '')
-        if hook_event != 'Notification':
+        # Check if this is an idle prompt notification (meaning Claude finished responding)
+        notification_type = input_data.get('notification_type', '')
+        if notification_type not in ['idle_prompt', 'permission_prompt']:
+            # Not a relevant event
             print(json.dumps({"result": "continue"}))
             return
 
-        # Get the message content
-        message = input_data.get('message', '')
-        message_type = input_data.get('type', '')
+        # Get the transcript path
+        transcript_path = input_data.get('transcript_path', '')
+        if not transcript_path or not os.path.exists(transcript_path):
+            print(json.dumps({"result": "continue"}))
+            return
 
-        # Only translate assistant text messages
-        if message_type != 'assistant' or not message:
+        # Read the last line of the transcript file
+        last_assistant_message = ""
+        try:
+            with open(transcript_path, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+                # Iterate backwards to find the last assistant message
+                for line in reversed(lines):
+                    try:
+                        entry = json.loads(line)
+                        msg = entry.get('message', {})
+                        if msg.get('role') == 'assistant' and msg.get('type') == 'message':
+                            # Found the last assistant message
+                            content_list = msg.get('content', [])
+                            for content in content_list:
+                                if content.get('type') == 'text':
+                                    last_assistant_message += content.get('text', '')
+                            break
+                    except json.JSONDecodeError:
+                        continue
+        except Exception as e:
+            # Log error reading transcript
+            with open('d:/code/src/claude-translator/debug_output_error.log', 'a', encoding='utf-8') as f:
+                f.write(f"Error reading transcript: {e}\n")
+            print(json.dumps({"result": "continue"}))
+            return
+
+        if not last_assistant_message:
+            # No assistant message found
             print(json.dumps({"result": "continue"}))
             return
 
@@ -84,8 +118,8 @@ def main():
 
         # Skip if message is already primarily Chinese
         # (We check if it has significant Chinese content to avoid double translation)
-        chinese_char_count = sum(1 for c in message if '\u4e00' <= c <= '\u9fff')
-        if chinese_char_count > len(message) * 0.3:
+        chinese_char_count = sum(1 for c in last_assistant_message if '\u4e00' <= c <= '\u9fff')
+        if chinese_char_count > len(last_assistant_message) * 0.3:
             print(json.dumps({"result": "continue"}))
             return
 
@@ -94,24 +128,26 @@ def main():
 
         if interactive_output:
             # Ask user if they want to translate
-            if not show_confirm_dialog(message):
+            # Use the first 500 chars for preview
+            preview_msg = last_assistant_message[:500] + "..." if len(last_assistant_message) > 500 else last_assistant_message
+            if not show_confirm_dialog(preview_msg):
                 # User declined translation
                 print(json.dumps({"result": "continue"}))
                 return
 
         # Translate to Chinese
-        translated = client.translate(message, 'Chinese')
+        translated = client.translate(last_assistant_message, 'Chinese')
 
-        # Output with Chinese translation appended
-        result = {
-            "result": "continue",
-            "additionalContext": f"\n---\n[Chinese Translation / 中文翻译]\n{translated}\n---"
-        }
-
-        print(json.dumps(result, ensure_ascii=False))
+        # Show result in a standalone window
+        show_translation_result(last_assistant_message, translated)
+        
+        # Continue without adding context to Claude (since we showed it to user)
+        print(json.dumps({"result": "continue"}))
 
     except Exception as e:
         # On error, log to stderr and continue normally
+        with open('d:/code/src/claude-translator/debug_output_error.log', 'a', encoding='utf-8') as f:
+            f.write(f"Error: {e}\n")
         print(f"Output translation hook error: {e}", file=sys.stderr)
         print(json.dumps({"result": "continue"}))
 

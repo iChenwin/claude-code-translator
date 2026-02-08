@@ -268,6 +268,130 @@ def show_confirm_dialog(message_preview: str) -> bool:
     return dialog.show()
 
 
+class TranslationResultDialog:
+    """Dialog for displaying translation results."""
+
+    def __init__(self, original: str, translated: str):
+        self.original = original
+        self.translated = translated
+
+    def show(self):
+        """Show the result dialog."""
+        root = tk.Tk()
+        root.title("Translation Result / 翻译结果")
+        root.geometry("800x600")
+        root.configure(bg='#f0f0f0')
+
+        # Center the window
+        root.update_idletasks()
+        x = (root.winfo_screenwidth() - 800) // 2
+        y = (root.winfo_screenheight() - 600) // 2
+        root.geometry(f"+{x}+{y}")
+
+        # Main container with two columns
+        main_frame = tk.Frame(root, bg='#f0f0f0')
+        main_frame.pack(fill='both', expand=True, padx=10, pady=10)
+
+        # Left column: Original
+        left_frame = tk.Frame(main_frame, bg='#f0f0f0')
+        left_frame.pack(side='left', fill='both', expand=True, padx=(0, 5))
+
+        tk.Label(
+            left_frame, 
+            text="Original (原文):", 
+            font=('Microsoft YaHei', 10, 'bold'),
+            bg='#f0f0f0'
+        ).pack(anchor='w')
+
+        orig_text = scrolledtext.ScrolledText(
+            left_frame,
+            font=('Consolas', 10),
+            bg='#e8e8e8',
+            wrap=tk.WORD
+        )
+        orig_text.pack(fill='both', expand=True)
+        orig_text.insert('1.0', self.original)
+        orig_text.config(state='disabled')
+
+        # Right column: Translated
+        right_frame = tk.Frame(main_frame, bg='#f0f0f0')
+        right_frame.pack(side='right', fill='both', expand=True, padx=(5, 0))
+
+        tk.Label(
+            right_frame, 
+            text="Translation (中文翻译):", 
+            font=('Microsoft YaHei', 10, 'bold'),
+            bg='#f0f0f0'
+        ).pack(anchor='w')
+
+        trans_text = scrolledtext.ScrolledText(
+            right_frame,
+            font=('Microsoft YaHei', 10),
+            bg='#ffffff',
+            wrap=tk.WORD
+        )
+        trans_text.pack(fill='both', expand=True)
+        trans_text.insert('1.0', self.translated)
+        trans_text.config(state='disabled')
+
+        # Button frame
+        btn_frame = tk.Frame(root, bg='#f0f0f0')
+        btn_frame.pack(fill='x', padx=10, pady=(0, 10))
+
+        def on_copy():
+            root.clipboard_clear()
+            root.clipboard_append(self.translated)
+            copy_btn.config(text="Copied! / 已复制!", bg='#8BC34A')
+            root.after(2000, lambda: copy_btn.config(text="Copy Translation / 复制译文", bg='#2196F3'))
+
+        def on_close():
+            root.destroy()
+
+        # Copy button
+        copy_btn = tk.Button(
+            btn_frame,
+            text="Copy Translation / 复制译文",
+            command=on_copy,
+            font=('Microsoft YaHei', 10),
+            bg='#2196F3',
+            fg='white',
+            width=20,
+            height=2
+        )
+        copy_btn.pack(side='right', padx=5)
+
+        # Close button
+        close_btn = tk.Button(
+            btn_frame,
+            text="Close / 关闭 (Esc)",
+            command=on_close,
+            font=('Microsoft YaHei', 10),
+            bg='#9e9e9e',
+            fg='white',
+            width=15,
+            height=2
+        )
+        close_btn.pack(side='right', padx=5)
+
+        # Bind Esc to close
+        root.bind('<Escape>', lambda e: on_close())
+
+        # Keep window on top
+        root.attributes('-topmost', True)
+        root.lift()
+        root.focus_force()
+
+        root.mainloop()
+
+
+def show_translation_result(original: str, translated: str):
+    """
+    Show translation result dialog.
+    """
+    dialog = TranslationResultDialog(original, translated)
+    dialog.show()
+
+
 if __name__ == '__main__':
     # Test the dialogs
     print("Testing edit dialog...")
